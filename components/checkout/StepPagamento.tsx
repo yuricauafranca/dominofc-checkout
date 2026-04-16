@@ -6,6 +6,7 @@ import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/products";
 import { PixPending } from "./PixPending";
 import { trackAddPaymentInfo } from "@/lib/fbPixel";
+import { readUtmParams } from "@/lib/utmReader";
 
 interface Props {
   step: "active" | "completed" | "inactive";
@@ -87,6 +88,9 @@ export function StepPagamento({ step, product, quantity, customerData, productId
       },
     });
 
+    // Lê UTMs capturados pelo script UTMify
+    const utmParams = readUtmParams();
+
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -102,6 +106,7 @@ export function StepPagamento({ step, product, quantity, customerData, productId
             document: cpf,
           },
           address: customerData,
+          trackingParameters: utmParams,
         }),
       });
       const data = await res.json();

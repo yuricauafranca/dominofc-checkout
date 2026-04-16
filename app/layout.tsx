@@ -44,6 +44,15 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
+
+        {/* UTMify — captura UTMs da URL e persiste em cookie */}
+        <Script
+          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+          data-utmify-prevent-xcod-sck
+          data-utmify-prevent-subids
+          strategy="afterInteractive"
+          async
+        />
       </head>
       <body className="min-h-full flex flex-col antialiased">{children}</body>
     </html>
