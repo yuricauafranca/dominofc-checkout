@@ -112,10 +112,8 @@ export async function POST(req: NextRequest) {
       await sendFbPurchase({
         orderId: transactionId,
         amountInReais: totalReais,
-        currency: "BRL",
         customer,
-        clientIp,
-        clientUserAgent,
+        meta: { clientIp, clientUserAgent },
       });
       console.log("[Webhook] Facebook CAPI Purchase sent for:", transactionId);
     }

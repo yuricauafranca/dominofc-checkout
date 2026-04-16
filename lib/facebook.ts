@@ -6,96 +6,168 @@ const ACCESS_TOKEN =
 const API_VERSION = "v19.0";
 const ENDPOINT = `https://graph.facebook.com/${API_VERSION}/${PIXEL_ID}/events`;
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function hash(value: string): string {
   return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
 
 function hashRaw(value: string): string {
-  // For values already normalized (phone digits only, CPF digits only)
   return crypto.createHash("sha256").update(value.trim()).digest("hex");
 }
 
-export interface FbPurchasePayload {
-  orderId: string;
-  amountInReais: number;
-  currency?: string;
-  customer: {
-    name: string;
-    email: string;
-    phone: string;       // digits only
-    document: string;    // CPF digits only
-    country?: string;
-  };
+function buildUserData(opts: {
+  email?: string;
+  phone?: string;
+  name?: string;
+  document?: string;
+  country?: string;
   clientIp?: string;
   clientUserAgent?: string;
-  fbp?: string;          // _fbp cookie value
-  fbc?: string;          // _fbc cookie value
+  fbp?: string;
+  fbc?: string;
+}): Record<string, string> {
+  const ud: Record<string, string> = {};
+
+  if (opts.email) ud.em = hash(opts.email);
+  if (opts.phone) ud.ph = hashRaw(opts.phone.replace(/\D/g, ""));
+  if (opts.document) ud.external_id = hashRaw(opts.document.replace(/\D/g, ""));
+  if (opts.country) ud.country = hash(opts.country);
+
+  if (opts.name) {
+    const parts = opts.name.trim().split(/\s+/);
+    ud.fn = hash(parts[0] ?? "");
+    ud.ln = hash(parts.slice(1).join(" ") || (parts[0] ?? ""));
+  }
+
+  if (opts.clientIp) ud.client_ip_address = opts.clientIp;
+  if (opts.clientUserAgent) ud.client_user_agent = opts.clientUserAgent;
+  if (opts.fbp) ud.fbp = opts.fbp;
+  if (opts.fbc) ud.fbc = opts.fbc;
+
+  return ud;
 }
 
-export async function sendFbPurchase(payload: FbPurchasePayload): Promise<void> {
-  const {
-    orderId,
-    amountInReais,
-    currency = "BRL",
-    customer,
-    clientIp,
-    clientUserAgent,
-    fbp,
-    fbc,
-  } = payload;
-
-  // Build user_data — hash all PII
-  const nameParts = customer.name.trim().split(/\s+/);
-  const firstName = nameParts[0] ?? "";
-  const lastName = nameParts.slice(1).join(" ") || firstName;
-
-  const userData: Record<string, string | string[]> = {
-    em: hash(customer.email),
-    ph: hashRaw(customer.phone.replace(/\D/g, "")),
-    fn: hash(firstName),
-    ln: hash(lastName),
-    country: hash(customer.country ?? "br"),
-  };
-
-  if (customer.document) {
-    userData["external_id"] = hashRaw(customer.document.replace(/\D/g, ""));
-  }
-  if (clientIp) userData["client_ip_address"] = clientIp;
-  if (clientUserAgent) userData["client_user_agent"] = clientUserAgent;
-  if (fbp) userData["fbp"] = fbp;
-  if (fbc) userData["fbc"] = fbc;
-
-  const event = {
-    event_name: "Purchase",
-    event_time: Math.floor(Date.now() / 1000),
-    event_id: orderId, // deduplication key
-    action_source: "website",
-    user_data: userData,
-    custom_data: {
-      value: amountInReais,
-      currency,
-      order_id: orderId,
-    },
-  };
-
-  const body = {
-    data: [event],
-    // test_event_code: "TEST12345", // uncomment to test in Events Manager
-  };
-
+async function sendCapi(events: object[]): Promise<void> {
   try {
     const res = await fetch(`${ENDPOINT}?access_token=${ACCESS_TOKEN}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ data: events }),
     });
     const json = await res.json();
     if (!res.ok) {
       console.error("[Facebook CAPI] Error:", JSON.stringify(json));
     } else {
-      console.log("[Facebook CAPI] Purchase sent:", orderId, "events_received:", json.events_received);
+      console.log(
+        "[Facebook CAPI]",
+        (events[0] as { event_name: string }).event_name,
+        "sent — events_received:",
+        json.events_received
+      );
     }
   } catch (err) {
     console.error("[Facebook CAPI] Fetch failed:", err);
   }
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+export interface FbCustomerData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  document?: string;
+  country?: string;
+}
+
+export interface FbRequestMeta {
+  clientIp?: string;
+  clientUserAgent?: string;
+  fbp?: string;
+  fbc?: string;
+}
+
+/** Fired server-side when user clicks "COMPRAR AGORA" → vai ao checkout */
+export async function sendFbInitiateCheckout(opts: {
+  eventId: string;
+  productId: string;
+  amountInReais: number;
+  customer?: FbCustomerData;
+  meta?: FbRequestMeta;
+}): Promise<void> {
+  await sendCapi([
+    {
+      event_name: "InitiateCheckout",
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: opts.eventId,
+      action_source: "website",
+      user_data: buildUserData({
+        ...opts.customer,
+        ...opts.meta,
+      }),
+      custom_data: {
+        value: opts.amountInReais,
+        currency: "BRL",
+        content_ids: [opts.productId],
+        content_type: "product",
+      },
+    },
+  ]);
+}
+
+/** Fired server-side when user submits CPF + clica "Finalizar Compra" (gera PIX) */
+export async function sendFbAddPaymentInfo(opts: {
+  eventId: string;
+  productId: string;
+  amountInReais: number;
+  customer: FbCustomerData;
+  meta?: FbRequestMeta;
+}): Promise<void> {
+  await sendCapi([
+    {
+      event_name: "AddPaymentInfo",
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: opts.eventId,
+      action_source: "website",
+      user_data: buildUserData({
+        ...opts.customer,
+        country: opts.customer.country ?? "br",
+        ...opts.meta,
+      }),
+      custom_data: {
+        value: opts.amountInReais,
+        currency: "BRL",
+        content_ids: [opts.productId],
+        content_type: "product",
+      },
+    },
+  ]);
+}
+
+/** Fired server-side via webhook quando PIX é pago (AUTHORIZED) */
+export async function sendFbPurchase(opts: {
+  orderId: string;
+  amountInReais: number;
+  customer: FbCustomerData;
+  meta?: FbRequestMeta;
+}): Promise<void> {
+  await sendCapi([
+    {
+      event_name: "Purchase",
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: opts.orderId,
+      action_source: "website",
+      user_data: buildUserData({
+        ...opts.customer,
+        country: opts.customer.country ?? "br",
+        ...opts.meta,
+      }),
+      custom_data: {
+        value: opts.amountInReais,
+        currency: "BRL",
+        order_id: opts.orderId,
+      },
+    },
+  ]);
 }

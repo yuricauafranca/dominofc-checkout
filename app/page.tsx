@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PRODUCTS } from "@/lib/products";
 import type { Product } from "@/lib/products";
+import { trackInitiateCheckout } from "@/lib/fbPixel";
 
 // ─── Team groupings ──────────────────────────────────────────────────────────
 const SERIE_A_NAMES = [
@@ -145,6 +146,7 @@ export default function LandingPage() {
   const [customName, setCustomName] = useState("");
 
   function handleBuy() {
+    trackInitiateCheckout({ productId: selected.productId, amount: selected.price });
     const params = new URLSearchParams({ product: selected.productId });
     if (customName.trim()) params.set("nome", customName.trim());
     router.push(`/checkout?${params.toString()}`);

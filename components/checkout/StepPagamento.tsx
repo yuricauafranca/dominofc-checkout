@@ -5,6 +5,7 @@ import { Info } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/products";
 import { PixPending } from "./PixPending";
+import { trackAddPaymentInfo } from "@/lib/fbPixel";
 
 interface Props {
   step: "active" | "completed" | "inactive";
@@ -73,6 +74,19 @@ export function StepPagamento({ step, product, quantity, customerData, productId
     }
     setCpfError("");
     setLoading(true);
+
+    // AddPaymentInfo — dispara pixel + CAPI com PII do cliente
+    trackAddPaymentInfo({
+      productId,
+      amount: total,
+      customer: {
+        name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone,
+        document: cpf,
+      },
+    });
+
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
