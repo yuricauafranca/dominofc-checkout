@@ -311,7 +311,7 @@ export default function LandingPage() {
               <p className="text-[#A0A0A0] text-sm mb-4">28 peças personalizadas + caixa premium</p>
 
               <div className="flex items-baseline gap-3 mb-2">
-                <span className="text-[#666] line-through text-base">R$ 189,90</span>
+                <span className="text-[#666] line-through text-base">R$ 129,90</span>
                 <span className="text-3xl font-bold" style={{ color: "#E5AE35", fontFamily: "var(--font-oswald), Oswald, sans-serif" }}>
                   R$ {selected.price.toFixed(2).replace(".", ",")}
                 </span>
