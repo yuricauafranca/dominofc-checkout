@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("[Webhook] Vezion payload:", JSON.stringify(body));
 
-    const { id, external_id, total_amount, status } = body;
+    const { id, external_id, total_amount, total_value, status } = body;
+    const totalReais: number = total_value ?? total_amount ?? 0;
     const transactionId: string = id || external_id;
 
     if (!transactionId) {
@@ -76,9 +77,9 @@ export async function POST(req: NextRequest) {
         customer,
         products,
         commission: {
-          totalPriceInCents: total_amount ?? 0,
+          totalPriceInCents: Math.round(totalReais * 100),
           gatewayFeeInCents: 0,
-          userValueInCents: total_amount ?? 0,
+          userValueInCents: Math.round(totalReais * 100),
         },
       });
 

@@ -119,12 +119,19 @@ export async function POST(req: NextRequest) {
       trackingParameters: trackingParameters || {},
     });
 
+    const pixCode: string =
+      data.pix?.payload || data.pix?.code || data.pix_code || data.qr_code || "";
+
+    // Generate QR code URL from PIX payload using free public service
+    const pixQrCodeUrl = pixCode
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pixCode)}`
+      : undefined;
+
     return NextResponse.json({
       transactionId,
-      pixCode: data.pix?.code || data.pix_code || data.qr_code,
-      pixQrCodeUrl: data.pix?.qr_code_url || data.qr_code_url || data.pix_qr_code_url,
+      pixCode,
+      pixQrCodeUrl,
       amount: product.price * quantity,
-      raw: data,
     });
   } catch (err) {
     console.error("Checkout error:", err);
