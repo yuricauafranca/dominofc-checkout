@@ -85,6 +85,58 @@ function Stars({ count = 5 }: { count?: number }) {
   );
 }
 
+function VideoSection() {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <section className="py-16 px-6 text-center" style={{ background: "#141414" }}>
+      <div className="max-w-3xl mx-auto">
+        <h2
+          className="text-2xl md:text-3xl font-bold mb-8"
+          style={{ fontFamily: "var(--font-oswald), Oswald, sans-serif", textTransform: "uppercase" }}
+        >
+          Aperte o Play e garanta{" "}
+          <span style={{ color: "#E5AE35" }}>+10% de Desconto!</span>
+        </h2>
+        <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+          {playing ? (
+            <iframe
+              src="https://www.youtube.com/embed/dDyxtrO_buI?autoplay=1"
+              title="Dominó FC"
+              allow="autoplay; fullscreen"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+              style={{ border: "none" }}
+            />
+          ) : (
+            <button
+              className="absolute inset-0 w-full h-full group cursor-pointer"
+              onClick={() => setPlaying(true)}
+              aria-label="Assistir vídeo"
+            >
+              <Image
+                src="/images/video-thumbnail-Dtmyu9VC.jpg"
+                alt="Assistir vídeo"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center transition-all group-hover:scale-110"
+                  style={{ background: "#E5AE35" }}
+                >
+                  <svg viewBox="0 0 24 24" fill="#141414" className="w-8 h-8 ml-1">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("Série A");
@@ -328,36 +380,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── VIDEO ── */}
-      <section className="py-16 px-6 text-center" style={{ background: "#141414" }}>
-        <div className="max-w-3xl mx-auto">
-          <h2
-            className="text-2xl md:text-3xl font-bold mb-8"
-            style={{ fontFamily: "var(--font-oswald), Oswald, sans-serif", textTransform: "uppercase" }}
-          >
-            Aperte o Play e garanta{" "}
-            <span style={{ color: "#E5AE35" }}>+10% de Desconto!</span>
-          </h2>
-          <div className="relative rounded-2xl overflow-hidden cursor-pointer group" onClick={handleBuy}>
-            <Image
-              src="/images/video-thumbnail-Dtmyu9VC.jpg"
-              alt="Vídeo"
-              width={800}
-              height={450}
-              className="w-full object-cover"
-            />
-            <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center transition-all group-hover:scale-110"
-                style={{ background: "#E5AE35" }}
-              >
-                <svg viewBox="0 0 24 24" fill="#141414" className="w-8 h-8 ml-1">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <VideoSection />
 
       {/* ── FAQ ── */}
       <section className="py-16 px-6" style={{ background: "#1a1a1a" }}>
