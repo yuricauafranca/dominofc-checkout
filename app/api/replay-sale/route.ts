@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const tx = await txResp.json();
   console.log("[Replay] TX:", JSON.stringify(tx));
 
-  const totalReais: number = tx.total_value ?? tx.total_amount ?? 0;
+  const totalReais: number = tx.amount ?? tx.total_value ?? tx.total_amount ?? 0;
 
   const customer = {
     name: tx.customer?.name || "Cliente",

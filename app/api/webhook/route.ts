@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log("[Webhook] Vezion payload:", JSON.stringify(body));
 
-    const { id, external_id, total_amount, total_value, status } = body;
-    const totalReais: number = total_value ?? total_amount ?? 0;
+    const { id, external_id, total_amount, total_value, amount, status } = body;
+    const totalReais: number = amount ?? total_value ?? total_amount ?? 0;
     const transactionId: string = id || external_id;
 
     if (!transactionId) {
