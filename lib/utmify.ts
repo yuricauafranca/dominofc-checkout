@@ -1,7 +1,7 @@
 const UTMIFY_ENDPOINT = "https://api.utmify.com.br/api-credentials/orders";
 const UTMIFY_TOKEN = "FW43Ui1XEvoh88gSU5edFjQltsbuNjclg00Y";
 
-export type UtmifyStatus = "WaitingPayment" | "Paid" | "Refunded" | "Canceled";
+export type UtmifyStatus = "waiting_payment" | "paid" | "refused" | "refunded" | "chargedback";
 
 export interface UtmifyOrderPayload {
   orderId: string;
@@ -30,20 +30,33 @@ export interface UtmifyOrderPayload {
   commission: {
     totalPriceInCents: number;
     gatewayFeeInCents: number;
-    userValueInCents: number;
+    userCommissionInCents: number;
   };
   trackingParameters?: {
-    utm_source?: string;
-    utm_medium?: string;
-    utm_campaign?: string;
-    utm_content?: string;
-    utm_term?: string;
-    sck?: string;
-    src?: string;
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_content: string | null;
+    utm_term: string | null;
+    sck?: string | null;
+    src?: string | null;
   };
 }
 
 export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<void> {
+  // Ensure all trackingParameters are present (required by UTMify even if null)
+  const tracking = {
+    utm_source: payload.trackingParameters?.utm_source ?? null,
+    utm_medium: payload.trackingParameters?.utm_medium ?? null,
+    utm_campaign: payload.trackingParameters?.utm_campaign ?? null,
+    utm_content: payload.trackingParameters?.utm_content ?? null,
+    utm_term: payload.trackingParameters?.utm_term ?? null,
+    sck: payload.trackingParameters?.sck ?? null,
+    src: payload.trackingParameters?.src ?? null,
+  };
+
+  const body = { ...payload, trackingParameters: tracking };
+
   try {
     const res = await fetch(UTMIFY_ENDPOINT, {
       method: "POST",
@@ -51,11 +64,11 @@ export async function sendUtmifyOrder(payload: UtmifyOrderPayload): Promise<void
         "Content-Type": "application/json",
         "x-api-token": UTMIFY_TOKEN,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
+    const responseText = await res.text();
     if (!res.ok) {
-      const body = await res.text();
-      console.error("[UTMify] Error:", res.status, body);
+      console.error("[UTMify] Error:", res.status, responseText);
     } else {
       console.log("[UTMify] Order sent:", payload.orderId, payload.status);
     }

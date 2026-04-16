@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
       await sendUtmifyOrder({
         orderId: transactionId,
-        status: "Paid",
+        status: "paid",
         platform: "DominoFC",
         paymentMethod: "pix",
         createdAt: new Date().toISOString(),
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         commission: {
           totalPriceInCents: Math.round(totalReais * 100),
           gatewayFeeInCents: 0,
-          userValueInCents: Math.round(totalReais * 100),
+          userCommissionInCents: Math.round(totalReais * 100),
         },
       });
 

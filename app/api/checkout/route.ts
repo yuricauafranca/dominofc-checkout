@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     // Fire UTMify "WaitingPayment" (PIX gerado, aguardando pagamento)
     await sendUtmifyOrder({
       orderId: transactionId,
-      status: "WaitingPayment",
+      status: "waiting_payment",
       platform: "DominoFC",
       paymentMethod: "pix",
       createdAt: new Date().toISOString(),
@@ -112,9 +112,9 @@ export async function POST(req: NextRequest) {
         },
       ],
       commission: {
-        totalPriceInCents: totalAmount,
+        totalPriceInCents: Math.round(totalAmount * 100),
         gatewayFeeInCents: 0,
-        userValueInCents: totalAmount,
+        userCommissionInCents: Math.round(totalAmount * 100),
       },
       trackingParameters: trackingParameters || {},
     });
