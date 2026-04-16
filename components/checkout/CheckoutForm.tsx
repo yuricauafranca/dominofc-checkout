@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Product } from "@/lib/products";
+import { trackInitiateCheckout } from "@/lib/fbPixel";
 import { OrderSummary } from "./OrderSummary";
 import { StepIdentificacao } from "./StepIdentificacao";
 import { StepEntrega } from "./StepEntrega";
@@ -18,6 +19,14 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
   const [step, setStep] = useState<Step>(1);
   const [quantity, setQuantity] = useState(1);
   const [personName, setPersonName] = useState(customName);
+  const firedRef = useRef(false);
+
+  // Dispara InitiateCheckout uma única vez ao montar o checkout
+  useEffect(() => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+    trackInitiateCheckout({ productId: product.productId, amount: product.price });
+  }, [product.productId, product.price]);
 
   const [identification, setIdentification] = useState({
     name: "",
