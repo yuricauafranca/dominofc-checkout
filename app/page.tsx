@@ -285,17 +285,19 @@ export default function LandingPage() {
           </div>
 
           {/* Product card */}
-          <div className="rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center" style={{ background: "#1a1a1a" }}>
-            <div className="flex-shrink-0">
+          <div className="rounded-2xl overflow-hidden" style={{ background: "#1a1a1a" }}>
+            {/* Product image — full width, large */}
+            <div className="relative w-full" style={{ aspectRatio: "4/3" }}>
               <Image
                 src={selected.productImage || selected.image}
                 alt={selected.name}
-                width={200}
-                height={200}
-                className="object-contain w-40 h-40 md:w-48 md:h-48 rounded-xl"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
-            <div className="flex-1 w-full">
+            {/* Info below image */}
+            <div className="p-6 md:p-8">
               <p className="text-[#E5AE35] text-xs font-bold tracking-widest uppercase mb-1">Dominó FC</p>
               <h3
                 className="text-2xl md:text-3xl font-bold mb-1"
@@ -305,7 +307,7 @@ export default function LandingPage() {
               </h3>
               <p className="text-[#A0A0A0] text-sm mb-4">28 peças personalizadas + caixa premium</p>
 
-              <div className="flex items-baseline gap-3 mb-6">
+              <div className="flex items-baseline gap-3 mb-2">
                 <span className="text-[#666] line-through text-base">R$ 189,90</span>
                 <span className="text-3xl font-bold" style={{ color: "#E5AE35", fontFamily: "var(--font-oswald), Oswald, sans-serif" }}>
                   R$ {selected.price.toFixed(2).replace(".", ",")}
@@ -317,7 +319,7 @@ export default function LandingPage() {
 
               <button
                 onClick={handleBuy}
-                className="w-full md:w-auto font-bold text-base px-10 py-4 rounded-full uppercase tracking-wide transition-all hover:brightness-110 hover:scale-105"
+                className="w-full font-bold text-base px-10 py-4 rounded-full uppercase tracking-wide transition-all hover:brightness-110 hover:scale-105"
                 style={{ background: "#E5AE35", color: "#141414", fontFamily: "var(--font-oswald), Oswald, sans-serif" }}
               >
                 COMPRAR AGORA
