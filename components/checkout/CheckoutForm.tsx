@@ -9,13 +9,15 @@ import { StepPagamento } from "./StepPagamento";
 
 interface CheckoutFormProps {
   product: Product;
+  customName?: string;
 }
 
 type Step = 1 | 2 | 3;
 
-export function CheckoutForm({ product }: CheckoutFormProps) {
+export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
   const [step, setStep] = useState<Step>(1);
   const [quantity, setQuantity] = useState(1);
+  const [personName, setPersonName] = useState(customName);
 
   const [identification, setIdentification] = useState({
     name: "",
@@ -59,6 +61,24 @@ export function CheckoutForm({ product }: CheckoutFormProps) {
 
         {/* ── Col 1: Steps 1 + 2 ── */}
         <div className="px-3.5 lg:px-0">
+          {/* Personalization name */}
+          <div className="border border-[#E2E8F0] p-[1rem] md:p-[1.65rem] rounded-[0.5rem] bg-white mb-3">
+            <h2 className="font-semibold text-[18px] text-[#0F172A] mb-1">
+              Nome no dominó
+            </h2>
+            <p className="text-[13px] text-[#6B7280] mb-3">
+              Qual nome você quer gravado nas peças e na caixa?
+            </p>
+            <input
+              type="text"
+              value={personName}
+              onChange={(e) => setPersonName(e.target.value)}
+              placeholder="Ex: João Silva"
+              maxLength={30}
+              className="input-base"
+            />
+          </div>
+
           <StepIdentificacao
             step={stepStateFor(1)}
             data={identification}
@@ -84,6 +104,7 @@ export function CheckoutForm({ product }: CheckoutFormProps) {
             quantity={quantity}
             customerData={{ ...identification, ...address }}
             productId={product.productId}
+            personName={personName}
           />
         </div>
 

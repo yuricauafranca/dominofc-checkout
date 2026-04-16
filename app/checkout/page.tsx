@@ -6,11 +6,11 @@ import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 import { Footer } from "@/components/checkout/Footer";
 
 interface CheckoutPageProps {
-  searchParams: Promise<{ product?: string }>;
+  searchParams: Promise<{ product?: string; nome?: string }>;
 }
 
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
-  const { product: productId } = await searchParams;
+  const { product: productId, nome } = await searchParams;
 
   if (!productId) notFound();
 
@@ -21,7 +21,7 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
     <div className="min-h-dvh flex flex-col">
       <Header />
       <Banner />
-      <CheckoutForm product={product} />
+      <CheckoutForm product={product} customName={nome ?? ""} />
       <Footer />
     </div>
   );

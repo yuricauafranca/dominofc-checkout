@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
     const {
       productId,
       quantity = 1,
+      personName = "",  // name to be engraved on the domino
       customer,  // { name, email, phone, document }
       address,   // { zipcode, address, number, neighborhood, city, state }
       trackingParameters, // optional UTM params from frontend
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
         {
           id: productId,
           title: product.fullName,
-          description: product.fullName,
+          description: personName ? `${product.fullName} - Nome: ${personName}` : product.fullName,
           price: product.price,
           quantity,
           is_physical: true,

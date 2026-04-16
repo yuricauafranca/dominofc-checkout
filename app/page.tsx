@@ -142,9 +142,12 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<Tab>("Série A");
   const [selected, setSelected] = useState<Product>(PRODUCTS[0]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [customName, setCustomName] = useState("");
 
   function handleBuy() {
-    router.push(`/checkout?product=${selected.productId}`);
+    const params = new URLSearchParams({ product: selected.productId });
+    if (customName.trim()) params.set("nome", customName.trim());
+    router.push(`/checkout?${params.toString()}`);
   }
 
   return (
@@ -317,6 +320,31 @@ export default function LandingPage() {
                 ou 12x de R$ {(selected.price / 12).toFixed(2).replace(".", ",")} sem juros
               </p>
 
+              {/* Name personalization */}
+              <div className="mb-5">
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: "#F5F4F0" }}
+                >
+                  Qual nome quer no dominó?
+                </label>
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Ex: João Silva"
+                  maxLength={30}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none placeholder:text-[#666] focus:ring-2"
+                  style={{
+                    background: "#222",
+                    color: "#F5F4F0",
+                    border: "1.5px solid #333",
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "#E5AE35")}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "#333")}
+                />
+              </div>
+
               <button
                 onClick={handleBuy}
                 className="w-full font-bold text-base px-10 py-4 rounded-full uppercase tracking-wide transition-all hover:brightness-110 hover:scale-105"
@@ -368,12 +396,16 @@ export default function LandingPage() {
           {/* Review cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {REVIEWS.map((r) => (
-              <div key={r.name} className="rounded-2xl p-5" style={{ background: "#222" }}>
-                <Stars />
-                <p className="text-[#F5F4F0] text-sm mt-3 mb-4 leading-relaxed">{r.text}</p>
-                <div className="flex items-center gap-3">
-                  <Image src={r.img} alt={r.name} width={36} height={36} className="rounded-full w-9 h-9 object-cover" />
-                  <span className="text-sm font-semibold">{r.name}</span>
+              <div key={r.name} className="rounded-2xl overflow-hidden" style={{ background: "#222" }}>
+                {/* Large portrait photo */}
+                <div className="relative w-full" style={{ aspectRatio: "4/5" }}>
+                  <Image src={r.img} alt={r.name} fill className="object-cover object-top" />
+                </div>
+                {/* Review text */}
+                <div className="p-4">
+                  <Stars />
+                  <p className="text-[#F5F4F0] text-sm mt-2 mb-3 leading-relaxed">{r.text}</p>
+                  <span className="text-sm font-semibold text-[#E5AE35]">{r.name}</span>
                 </div>
               </div>
             ))}

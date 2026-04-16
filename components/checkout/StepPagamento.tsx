@@ -25,6 +25,7 @@ interface Props {
     state: string;
   };
   productId: string;
+  personName?: string;
 }
 
 function formatCpf(v: string) {
@@ -50,7 +51,7 @@ function validateCpf(cpf: string) {
   return r === parseInt(d[10]);
 }
 
-export function StepPagamento({ step, product, quantity, customerData, productId }: Props) {
+export function StepPagamento({ step, product, quantity, customerData, productId, personName = "" }: Props) {
   const isActive = step === "active";
   const isInactive = step === "inactive";
   const total = product.price * quantity;
@@ -83,6 +84,7 @@ export function StepPagamento({ step, product, quantity, customerData, productId
           body: JSON.stringify({
             productId,
             quantity,
+            personName,
             customer: {
               name: customerData.name,
               email: customerData.email,
