@@ -31,7 +31,12 @@ export async function POST(req: NextRequest) {
 
     const totalAmount = product.price * quantity; // reais
     const externalId = `domino-${productId}-${Date.now()}`;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dominofc.com";
+
+    // Deriva a URL base do próprio request para garantir que o webhook
+    // aponta sempre para o servidor correto (Vercel, domínio customizado, etc.)
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+    const proto = req.headers.get("x-forwarded-proto") || "https";
+    const baseUrl = `${proto}://${host}`;
 
     // Get client IP
     const ip =
@@ -64,6 +69,8 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    console.log("[Checkout] webhook_url enviado à Vezion:", `${baseUrl}/api/webhook`);
+
     const resp = await fetch(`${VEZION_API}/v1/transactions`, {
       method: "POST",
       headers: {
@@ -76,7 +83,7 @@ export async function POST(req: NextRequest) {
     const data = await resp.json();
 
     if (!resp.ok) {
-      console.error("Vezion error:", data);
+      console.error("[Checkout] Vezion error:", JSON.stringify(data));
       return NextResponse.json(
         { error: data?.message || "Erro ao gerar PIX" },
         { status: resp.status }
@@ -84,8 +91,10 @@ export async function POST(req: NextRequest) {
     }
 
     const transactionId: string = data.id || data.transaction_id || externalId;
+    console.log("[Checkout] Transação criada:", transactionId);
 
     // Fire UTMify "WaitingPayment" (PIX gerado, aguardando pagamento)
+    console.log("[Checkout] Enviando UTMify waiting_payment...");
     await sendUtmifyOrder({
       orderId: transactionId,
       status: "waiting_payment",
