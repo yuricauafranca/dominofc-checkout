@@ -334,7 +334,7 @@ export default function LandingPage() {
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Ex: João Silva"
                   maxLength={30}
-                  className="w-full px-4 py-3 rounded-xl text-sm outline-none placeholder:text-[#666] focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl text-base outline-none placeholder:text-[#666] focus:ring-2"
                   style={{
                     background: "#222",
                     color: "#F5F4F0",

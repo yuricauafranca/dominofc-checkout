@@ -30,7 +30,7 @@ body {
   border-radius: 0.5rem;
   background: #ffffff;
   padding: 4px 12px;
-  font-size: 13px;
+  font-size: 16px; /* ≥16px evita zoom automático no iOS Safari */
   font-family: "Inter", sans-serif;
   color: var(--color-text);
   transition: border-color 0.15s, box-shadow 0.15s;
