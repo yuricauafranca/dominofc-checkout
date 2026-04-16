@@ -4,8 +4,6 @@ import { sendUtmifyOrder } from "@/lib/utmify";
 
 const VEZION_API = "https://api.vezion.com.br";
 const VEZION_SECRET = "sk_1a88c321449288d2d834e841b967e91c8331b0576a517ecbd181d76ab313a70c6b5839d649846e6801a686328b0cdedeede5e9402a5322ef6519791dc97c8414";
-const RECIPIENT_ID = "rcpt_49023c4d-29e7-42ca-b975-acb7344331a5";
-
 function stripCpf(cpf: string) {
   return cpf.replace(/\D/g, "");
 }
@@ -45,19 +43,22 @@ export async function POST(req: NextRequest) {
       total_amount: totalAmount,
       payment_method: "PIX",
       webhook_url: `${baseUrl}/api/webhook`,
-      recipient_id: RECIPIENT_ID,
-      IP: ip,
+      ip,
       items: [
         {
-          name: product.fullName,
+          id: productId,
+          title: product.fullName,
+          description: product.fullName,
+          price: Math.round(product.price * 100),
           quantity,
-          unit_amount: Math.round(product.price * 100),
+          is_physical: true,
         },
       ],
       customer: {
         name: customer.name,
         email: customer.email,
         document: stripCpf(customer.document),
+        document_type: "CPF",
         phone: stripPhone(customer.phone),
       },
     };
