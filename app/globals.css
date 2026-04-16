@@ -16,10 +16,16 @@
   --color-green-bg: #f8fdf7;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   font-family: "Inter", sans-serif;
   color: var(--color-text);
   background: #ffffff;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .input-base {

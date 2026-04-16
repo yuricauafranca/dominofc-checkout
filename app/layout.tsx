@@ -9,6 +9,9 @@ const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald" });
 export const metadata: Metadata = {
   title: "Dominó FC | Finalizar Compra",
   description: "Checkout Dominó FC",
+  other: {
+    viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
+  },
 };
 
 export default function RootLayout({

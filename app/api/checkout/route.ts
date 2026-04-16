@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
     const {
       productId,
       quantity = 1,
+      discount = 0,     // 0–1 fraction (e.g. 0.10 = 10% off)
       personName = "",  // name to be engraved on the domino
       customer,  // { name, email, phone, document }
       address,   // { zipcode, address, number, neighborhood, city, state }
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
     }
 
-    const totalAmount = product.price * quantity; // reais
+    const totalAmount = product.price * quantity * (1 - discount); // reais
     const externalId = `domino-${productId}-${Date.now()}`;
 
     // Deriva a URL base do próprio request para garantir que o webhook

@@ -10,16 +10,21 @@ interface OrderSummaryProps {
   product: Product;
   quantity: number;
   onQuantityChange: (q: number) => void;
-  /** When true (mobile): show collapsible header with price+chevron */
+  discount: number; // 0–1 fraction
+  couponInput: string;
+  onCouponChange: (v: string) => void;
+  onApplyCoupon: () => void;
+  couponMsg: { text: string; ok: boolean } | null;
   mobile?: boolean;
 }
 
 function SummaryBody({
-  product,
-  quantity,
-  onQuantityChange,
+  product, quantity, onQuantityChange,
+  discount, couponInput, onCouponChange, onApplyCoupon, couponMsg,
 }: Omit<OrderSummaryProps, "mobile">) {
-  const total = product.price * quantity;
+  const subtotal = product.price * quantity;
+  const discountAmt = subtotal * discount;
+  const total = subtotal - discountAmt;
 
   return (
     <>
@@ -27,22 +32,40 @@ function SummaryBody({
       <div className="mx-4 my-4">
         <div className="flex justify-between gap-2">
           <input
-            className="flex border border-[#dedede] bg-transparent px-3 py-1 text-[13px] h-10 w-full rounded-[0.5rem] outline-none focus:border-black transition-colors"
+            className="flex border border-[#dedede] bg-transparent px-3 py-1 text-[13px] h-10 w-full rounded-[0.5rem] outline-none focus:border-black transition-colors uppercase"
             placeholder="Digite um cupom"
             type="text"
+            value={couponInput}
+            onChange={(e) => onCouponChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onApplyCoupon()}
           />
-          <button type="button" className="whitespace-nowrap px-4 py-2 h-10 text-[13px] font-medium border-0 bg-transparent text-black rounded-[0.5rem]">
-            Aplicar cupom
+          <button
+            type="button"
+            onClick={onApplyCoupon}
+            className="whitespace-nowrap px-4 py-2 h-10 text-[13px] font-medium border-0 bg-transparent text-black rounded-[0.5rem] hover:bg-slate-100 transition-colors"
+          >
+            Aplicar
           </button>
         </div>
+        {couponMsg && (
+          <p className={`text-[12px] mt-1 ${couponMsg.ok ? "text-green-600" : "text-red-500"}`}>
+            {couponMsg.text}
+          </p>
+        )}
       </div>
 
       {/* Totals */}
       <dl className="px-4 pb-5 mb-4 border-b border-slate-200 space-y-1">
         <div className="flex items-center justify-between">
           <dt className="text-[13px] text-black">Produtos</dt>
-          <dd className="text-black text-[13px]">R$&nbsp;{formatPrice(product.price * quantity)}</dd>
+          <dd className="text-black text-[13px]">R$&nbsp;{formatPrice(subtotal)}</dd>
         </div>
+        {discount > 0 && (
+          <div className="flex items-center justify-between">
+            <dt className="text-[13px] text-green-600">Cupom ({discount * 100}%)</dt>
+            <dd className="text-green-600 text-[13px]">− R$&nbsp;{formatPrice(discountAmt)}</dd>
+          </div>
+        )}
         <div className="flex items-center justify-between mt-1">
           <dt className="text-black text-[13px]">Frete</dt>
           <dd className="text-[13px] text-green-600 font-normal">Grátis</dd>
@@ -74,7 +97,6 @@ function SummaryBody({
             <span className="text-[13px] font-normal text-black whitespace-nowrap">
               R$&nbsp;{formatPrice(product.price)}
             </span>
-            {/* Quantity stepper */}
             <div className="inline-flex items-center h-8 rounded-md border border-slate-200 overflow-hidden">
               <button
                 type="button"
@@ -108,10 +130,10 @@ function SummaryBody({
   );
 }
 
-/** Mobile version — collapsible with price + chevron in header */
-function MobileSummary({ product, quantity, onQuantityChange }: Omit<OrderSummaryProps, "mobile">) {
+function MobileSummary(props: Omit<OrderSummaryProps, "mobile">) {
   const [open, setOpen] = useState(true);
-  const total = product.price * quantity;
+  const { product, quantity, discount } = props;
+  const total = product.price * quantity * (1 - discount);
   return (
     <div className="border border-[#E2E8F0] overflow-hidden flex-shrink-0 rounded-[0.5rem]">
       <button
@@ -130,16 +152,14 @@ function MobileSummary({ product, quantity, onQuantityChange }: Omit<OrderSummar
           {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
-      {open && <SummaryBody product={product} quantity={quantity} onQuantityChange={onQuantityChange} />}
+      {open && <SummaryBody {...props} />}
     </div>
   );
 }
 
-/** Desktop version — plain header, always expanded */
-function DesktopSummary({ product, quantity, onQuantityChange }: Omit<OrderSummaryProps, "mobile">) {
+function DesktopSummary(props: Omit<OrderSummaryProps, "mobile">) {
   return (
     <div className="border border-[#E2E8F0] overflow-hidden flex-shrink-0 rounded-[0.5rem]">
-      {/* Plain header — no toggle, no price */}
       <div
         className="flex justify-between items-center gap-2"
         style={{ padding: "13px 13px 13px 19px", background: "#F7F7F7" }}
@@ -148,14 +168,12 @@ function DesktopSummary({ product, quantity, onQuantityChange }: Omit<OrderSumma
           Resumo do pedido
         </span>
       </div>
-      <SummaryBody product={product} quantity={quantity} onQuantityChange={onQuantityChange} />
+      <SummaryBody {...props} />
     </div>
   );
 }
 
-export function OrderSummary({ product, quantity, onQuantityChange, mobile }: OrderSummaryProps) {
-  if (mobile) {
-    return <MobileSummary product={product} quantity={quantity} onQuantityChange={onQuantityChange} />;
-  }
-  return <DesktopSummary product={product} quantity={quantity} onQuantityChange={onQuantityChange} />;
+export function OrderSummary(props: OrderSummaryProps) {
+  if (props.mobile) return <MobileSummary {...props} />;
+  return <DesktopSummary {...props} />;
 }

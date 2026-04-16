@@ -8,6 +8,14 @@ import { StepIdentificacao } from "./StepIdentificacao";
 import { StepEntrega } from "./StepEntrega";
 import { StepPagamento } from "./StepPagamento";
 
+const VALID_COUPONS: Record<string, number> = {
+  "CLUBE10": 0.10,
+};
+
+function applyCoupon(code: string): number {
+  return VALID_COUPONS[code.toUpperCase().trim()] ?? 0;
+}
+
 interface CheckoutFormProps {
   product: Product;
   customName?: string;
@@ -19,9 +27,11 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
   const [step, setStep] = useState<Step>(1);
   const [quantity, setQuantity] = useState(1);
   const [personName, setPersonName] = useState(customName);
+  const [couponInput, setCouponInput] = useState("");
+  const [discount, setDiscount] = useState(0); // 0–1 fraction
+  const [couponMsg, setCouponMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const firedRef = useRef(false);
 
-  // Dispara InitiateCheckout uma única vez ao montar o checkout
   useEffect(() => {
     if (firedRef.current) return;
     firedRef.current = true;
@@ -29,20 +39,24 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
   }, [product.productId, product.price]);
 
   const [identification, setIdentification] = useState({
-    name: "",
-    email: "",
-    phone: "",
+    name: "", email: "", phone: "",
   });
 
   const [address, setAddress] = useState({
-    zipcode: "",
-    address: "",
-    number: "",
-    neighborhood: "",
-    complement: "",
-    city: "",
-    state: "",
+    zipcode: "", address: "", number: "",
+    neighborhood: "", complement: "", city: "", state: "",
   });
+
+  function handleApplyCoupon() {
+    const pct = applyCoupon(couponInput);
+    if (pct > 0) {
+      setDiscount(pct);
+      setCouponMsg({ text: `Cupom aplicado! ${pct * 100}% de desconto.`, ok: true });
+    } else {
+      setDiscount(0);
+      setCouponMsg({ text: "Cupom inválido.", ok: false });
+    }
+  }
 
   function stepStateFor(s: Step): "active" | "completed" | "inactive" {
     if (step === s) return "active";
@@ -56,7 +70,7 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
         className="lg:grid lg:grid-cols-3 lg:gap-x-4 lg:px-3 relative space-y-reverse px-0 md:px-3.5 lg:mt-6"
         onSubmit={(e) => e.preventDefault()}
       >
-        {/* ── Mobile order summary (hidden on desktop) ── */}
+        {/* ── Mobile order summary ── */}
         <div className="h-auto lg:hidden flex flex-col px-3.5">
           <div className="sticky top-0 z-20 flex flex-col bg-white rounded-[0.5rem]">
             <OrderSummary
@@ -64,17 +78,20 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
               product={product}
               quantity={quantity}
               onQuantityChange={setQuantity}
+              discount={discount}
+              couponInput={couponInput}
+              onCouponChange={setCouponInput}
+              onApplyCoupon={handleApplyCoupon}
+              couponMsg={couponMsg}
             />
           </div>
         </div>
 
         {/* ── Col 1: Steps 1 + 2 ── */}
         <div className="px-3.5 lg:px-0">
-          {/* Personalization name */}
+          {/* Nome personalização */}
           <div className="border border-[#E2E8F0] p-[1rem] md:p-[1.65rem] rounded-[0.5rem] bg-white mb-3">
-            <h2 className="font-semibold text-[18px] text-[#0F172A] mb-1">
-              Nome no dominó
-            </h2>
+            <h2 className="font-semibold text-[18px] text-[#0F172A] mb-1">Nome no dominó</h2>
             <p className="text-[13px] text-[#6B7280] mb-3">
               Qual nome você quer gravado nas peças e na caixa?
             </p>
@@ -105,24 +122,30 @@ export function CheckoutForm({ product, customName = "" }: CheckoutFormProps) {
           />
         </div>
 
-        {/* ── Col 2: Step 3 (Pagamento) ── */}
+        {/* ── Col 2: Pagamento ── */}
         <div className="h-auto px-3.5 lg:px-0">
           <StepPagamento
             step={stepStateFor(3)}
             product={product}
             quantity={quantity}
+            discount={discount}
             customerData={{ ...identification, ...address }}
             productId={product.productId}
             personName={personName}
           />
         </div>
 
-        {/* ── Col 3: Order Summary (desktop only) ── */}
+        {/* ── Col 3: Order Summary desktop ── */}
         <div className="h-auto hidden lg:block">
           <OrderSummary
             product={product}
             quantity={quantity}
             onQuantityChange={setQuantity}
+            discount={discount}
+            couponInput={couponInput}
+            onCouponChange={setCouponInput}
+            onApplyCoupon={handleApplyCoupon}
+            couponMsg={couponMsg}
           />
         </div>
       </form>

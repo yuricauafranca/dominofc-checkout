@@ -12,6 +12,7 @@ interface Props {
   step: "active" | "completed" | "inactive";
   product: Product;
   quantity: number;
+  discount?: number; // 0–1 fraction
   customerData: {
     name: string;
     email: string;
@@ -51,10 +52,10 @@ function validateCpf(cpf: string) {
   return r === parseInt(d[10]);
 }
 
-export function StepPagamento({ step, product, quantity, customerData, productId, personName = "" }: Props) {
+export function StepPagamento({ step, product, quantity, discount = 0, customerData, productId, personName = "" }: Props) {
   const isActive = step === "active";
   const isInactive = step === "inactive";
-  const total = product.price * quantity;
+  const total = product.price * quantity * (1 - discount);
 
   const [cpf, setCpf] = useState("");
   const [cpfError, setCpfError] = useState("");
@@ -98,6 +99,7 @@ export function StepPagamento({ step, product, quantity, customerData, productId
         body: JSON.stringify({
           productId,
           quantity,
+          discount,
           personName,
           customer: {
             name: customerData.name,
