@@ -181,7 +181,7 @@ export default function LandingPage() {
               Peças personalizadas com o escudo do seu clube do coração. Reúna os amigos, represente sua torcida e jogue com estilo.
             </p>
             <button
-              onClick={handleBuy}
+              onClick={() => document.getElementById("escolha-seu-time")?.scrollIntoView({ behavior: "smooth" })}
               className="font-bold text-base md:text-lg px-10 py-4 rounded-full uppercase tracking-wide transition-all hover:brightness-110 hover:scale-105"
               style={{ background: "#E5AE35", color: "#141414", fontFamily: "var(--font-oswald), Oswald, sans-serif" }}
             >
@@ -241,7 +241,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── TEAM SELECTOR ── */}
-      <section className="py-16 px-6" style={{ background: "#141414" }}>
+      <section id="escolha-seu-time" className="py-16 px-6" style={{ background: "#141414" }}>
         <div className="max-w-4xl mx-auto">
           <p className="text-[#E5AE35] text-xs font-bold tracking-widest mb-2 uppercase text-center">Escolha seu time</p>
           <h2
