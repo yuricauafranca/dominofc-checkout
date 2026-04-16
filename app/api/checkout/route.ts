@@ -3,7 +3,7 @@ import { getProduct } from "@/lib/products";
 import { sendUtmifyOrder } from "@/lib/utmify";
 
 const VEZION_API = "https://api.vezion.com.br";
-const VEZION_SECRET = "sk_1a88c321449288d2d834e841b967e91c8331b0576a517ecbd181d76ab313a70c6b5839d649846e6801a686328b0cdedeede5e9402a5322ef6519791dc97c8414";
+const VEZION_SECRET = "sk_b5f93174912593b2873573803aa4ea7b15f4bf7f45e91970a315f619f19a23cc0816d4f8b54cea029e99ce911ec19af6ee7f4b232aefb49e38a9a0f2f882b49f";
 function stripCpf(cpf: string) {
   return cpf.replace(/\D/g, "");
 }
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
     }
 
-    const totalAmount = Math.round(product.price * quantity * 100); // centavos
+    const totalAmount = product.price * quantity; // reais
     const externalId = `domino-${productId}-${Date.now()}`;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dominofc.com";
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
           id: productId,
           title: product.fullName,
           description: product.fullName,
-          price: Math.round(product.price * 100),
+          price: product.price,
           quantity,
           is_physical: true,
         },

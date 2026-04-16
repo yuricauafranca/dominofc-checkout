@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendUtmifyOrder } from "@/lib/utmify";
 
 const VEZION_API = "https://api.vezion.com.br";
-const VEZION_SECRET = "sk_1a88c321449288d2d834e841b967e91c8331b0576a517ecbd181d76ab313a70c6b5839d649846e6801a686328b0cdedeede5e9402a5322ef6519791dc97c8414";
+const VEZION_SECRET = "sk_b5f93174912593b2873573803aa4ea7b15f4bf7f45e91970a315f619f19a23cc0816d4f8b54cea029e99ce911ec19af6ee7f4b232aefb49e38a9a0f2f882b49f";
 
 /**
  * Vezion webhook payload:
